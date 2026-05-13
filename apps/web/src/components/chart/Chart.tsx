@@ -18,16 +18,18 @@ import {
 } from 'lightweight-charts';
 import { useEffect, useRef } from 'react';
 
+export type ChartStatus = 'loading' | 'ready' | 'error';
+
 interface ChartProps {
   symbol: TradingSymbol;
   timeframe: Timeframe;
   onLatestBarChange?: (bar: Candle) => void;
+  onStatusChange?: (status: ChartStatus) => void;
 }
 
 const CHART_THEME = {
   background: '#0b0e11',
   textPrimary: '#e6e9ef',
-  textMuted: '#5f6878',
   border: '#232a36',
   bullish: '#22c55e',
   bearish: '#ef4444',
@@ -38,40 +40,29 @@ const CHART_THEME = {
 const HISTORY_BARS = 500;
 
 function timeframeWindowMs(timeframe: Timeframe, bars: number): number {
-  const minute = 60_000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-  const TF: Record<Timeframe, number> = {
-    '1m': minute,
-    '3m': 3 * minute,
-    '5m': 5 * minute,
-    '15m': 15 * minute,
-    '30m': 30 * minute,
-    '1h': hour,
-    '2h': 2 * hour,
-    '4h': 4 * hour,
-    '6h': 6 * hour,
-    '8h': 8 * hour,
-    '12h': 12 * hour,
-    '1d': day,
-    '3d': 3 * day,
-    '1w': 7 * day,
-    '1M': 30 * day,
+  const m = 60_000;
+  const h = 60 * m;
+  const d = 24 * h;
+  const spans: Record<Timeframe, number> = {
+    '1m': m, '3m': 3*m, '5m': 5*m, '15m': 15*m, '30m': 30*m,
+    '1h': h, '2h': 2*h, '4h': 4*h, '6h': 6*h, '8h': 8*h, '12h': 12*h,
+    '1d': d, '3d': 3*d, '1w': 7*d, '1M': 30*d,
   };
-  return TF[timeframe] * bars;
+  return spans[timeframe] * bars;
 }
 
-export function Chart({ symbol, timeframe, onLatestBarChange }: ChartProps) {
+export function Chart({ symbol, timeframe, onLatestBarChange, onStatusChange }: ChartProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
-  const onLatestBarChangeRef = useRef(onLatestBarChange);
+  const callbacksRef = useRef({ onLatestBarChange, onStatusChange });
 
   useEffect(() => {
-    onLatestBarChangeRef.current = onLatestBarChange;
-  }, [onLatestBarChange]);
+    callbacksRef.current = { onLatestBarChange, onStatusChange };
+  }, [onLatestBarChange, onStatusChange]);
 
+  // Create chart once on mount
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -111,7 +102,7 @@ export function Chart({ symbol, timeframe, onLatestBarChange }: ChartProps) {
 
     const volumeSeries = chart.addHistogramSeries({
       priceFormat: { type: 'volume' },
-      priceScaleId: 'volume',
+      priceScaleId: '',
     });
     volumeSeries.priceScale().applyOptions({
       scaleMargins: { top: 0.8, bottom: 0 },
@@ -129,6 +120,7 @@ export function Chart({ symbol, timeframe, onLatestBarChange }: ChartProps) {
     };
   }, []);
 
+  // Load history + subscribe whenever symbol or timeframe changes
   useEffect(() => {
     const candleSeries = candleSeriesRef.current;
     const volumeSeries = volumeSeriesRef.current;
@@ -140,6 +132,7 @@ export function Chart({ symbol, timeframe, onLatestBarChange }: ChartProps) {
 
     candleSeries.setData([]);
     volumeSeries.setData([]);
+    callbacksRef.current.onStatusChange?.('loading');
 
     const to = Date.now();
     const from = to - timeframeWindowMs(timeframe, HISTORY_BARS);
@@ -155,7 +148,6 @@ export function Chart({ symbol, timeframe, onLatestBarChange }: ChartProps) {
             return { ...lw, time: lw.time as UTCTimestamp };
           }),
         );
-
         volumeSeries.setData(
           bars.map((bar) => {
             const lw = toLightweightVolume(bar, CHART_THEME.volumeUp, CHART_THEME.volumeDown);
@@ -164,7 +156,8 @@ export function Chart({ symbol, timeframe, onLatestBarChange }: ChartProps) {
         );
 
         const last = bars.at(-1);
-        if (last) onLatestBarChangeRef.current?.(last);
+        if (last) callbacksRef.current.onLatestBarChange?.(last);
+        callbacksRef.current.onStatusChange?.('ready');
 
         unsubscribe = datafeed.subscribeBars({
           symbol,
@@ -172,19 +165,20 @@ export function Chart({ symbol, timeframe, onLatestBarChange }: ChartProps) {
           onBar: (bar) => {
             const lw = toLightweightCandle(bar);
             candleSeries.update({ ...lw, time: lw.time as UTCTimestamp });
-
             const vol = toLightweightVolume(bar, CHART_THEME.volumeUp, CHART_THEME.volumeDown);
             volumeSeries.update({ ...vol, time: vol.time as UTCTimestamp });
-
-            onLatestBarChangeRef.current?.(bar);
+            callbacksRef.current.onLatestBarChange?.(bar);
           },
           onError: (err) => {
-            console.error('[chart] subscribe error', err);
+            console.error('[chart] ws error', err);
           },
         });
       })
       .catch((err: unknown) => {
-        console.error('[chart] history error', err);
+        if (!cancelled) {
+          console.error('[chart] history error', err);
+          callbacksRef.current.onStatusChange?.('error');
+        }
       });
 
     return () => {

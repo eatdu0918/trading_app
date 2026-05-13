@@ -1,5 +1,6 @@
 import type { Candle, Timeframe, TradingSymbol } from '@trading-app/core';
 import type { Datafeed, HistoryRequest, SubscribeOptions, Unsubscribe } from '../types';
+import { WsManager } from '../ws-manager';
 
 const REST_BASE = 'https://api.binance.com';
 const WS_BASE = 'wss://stream.binance.com:9443/ws';
@@ -87,33 +88,27 @@ export class BinanceDatafeed implements Datafeed {
 
   subscribeBars({ symbol, timeframe, onBar, onError }: SubscribeOptions): Unsubscribe {
     const stream = `${toBinanceSymbol(symbol).toLowerCase()}@kline_${BINANCE_INTERVAL[timeframe]}`;
-    const ws = new WebSocket(`${WS_BASE}/${stream}`);
-
-    ws.addEventListener('message', (event) => {
-      try {
-        const payload = JSON.parse(event.data as string) as BinanceKlineMessage;
-        if (payload.e !== 'kline') return;
-        onBar({
-          time: payload.k.t,
-          open: Number.parseFloat(payload.k.o),
-          high: Number.parseFloat(payload.k.h),
-          low: Number.parseFloat(payload.k.l),
-          close: Number.parseFloat(payload.k.c),
-          volume: Number.parseFloat(payload.k.v),
-        });
-      } catch (err) {
-        onError?.(err instanceof Error ? err : new Error(String(err)));
-      }
+    const manager = new WsManager({
+      url: `${WS_BASE}/${stream}`,
+      onMessage: (data) => {
+        try {
+          const payload = JSON.parse(data) as BinanceKlineMessage;
+          if (payload.e !== 'kline') return;
+          onBar({
+            time: payload.k.t,
+            open: Number.parseFloat(payload.k.o),
+            high: Number.parseFloat(payload.k.h),
+            low: Number.parseFloat(payload.k.l),
+            close: Number.parseFloat(payload.k.c),
+            volume: Number.parseFloat(payload.k.v),
+          });
+        } catch (err) {
+          onError?.(err instanceof Error ? err : new Error(String(err)));
+        }
+      },
+      onError,
     });
 
-    ws.addEventListener('error', () => {
-      onError?.(new Error('Binance websocket error'));
-    });
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        ws.close();
-      }
-    };
+    return () => manager.close();
   }
 }

@@ -7,9 +7,10 @@ import { formatPrice, formatSignedPercent, formatVolume } from '@/lib/format';
 interface PriceHeaderProps {
   symbol: TradingSymbol;
   bar: Candle | null;
+  isLoading?: boolean;
 }
 
-export function PriceHeader({ symbol, bar }: PriceHeaderProps) {
+export function PriceHeader({ symbol, bar, isLoading }: PriceHeaderProps) {
   const change = bar ? bar.close - bar.open : 0;
   const changePct = bar && bar.open !== 0 ? (change / bar.open) * 100 : 0;
   const isUp = change >= 0;
@@ -26,13 +27,17 @@ export function PriceHeader({ symbol, bar }: PriceHeaderProps) {
       <div className="flex items-baseline gap-3">
         <span
           className={cn(
-            'font-mono text-2xl font-semibold tabular-nums',
-            isUp ? 'text-[var(--color-bullish)]' : 'text-[var(--color-bearish)]',
+            'font-mono text-2xl font-semibold tabular-nums transition-colors',
+            isLoading
+              ? 'text-[var(--color-text-muted)]'
+              : isUp
+                ? 'text-[var(--color-bullish)]'
+                : 'text-[var(--color-bearish)]',
           )}
         >
           {bar ? formatPrice(bar.close, symbol.pricePrecision) : '—'}
         </span>
-        {bar && (
+        {bar && !isLoading && (
           <span
             className={cn(
               'font-mono text-sm tabular-nums',

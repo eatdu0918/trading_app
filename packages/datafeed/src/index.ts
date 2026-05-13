@@ -1,5 +1,6 @@
 export * from './types';
 export { BinanceDatafeed } from './sources/binance';
+export { WsManager } from './ws-manager';
 export {
   toLightweightCandle,
   toLightweightVolume,

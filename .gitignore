@@ -53,4 +53,4 @@ coverage/
 
 # Playwright artifacts
 .playwright-mcp/
-chart-mvp.png
+*.png
