@@ -50,3 +50,7 @@ coverage/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Playwright artifacts
+.playwright-mcp/
+chart-mvp.png
