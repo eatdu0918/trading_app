@@ -61,8 +61,8 @@ export function ChartGrid({ primarySymbol, initialTimeframe = '1m' }: ChartGridP
 
   return (
     <div className="flex h-full flex-col gap-2">
-      {/* Layout switcher */}
-      <div className="flex shrink-0 items-center justify-end gap-1">
+      {/* Layout switcher — desktop only */}
+      <div className="hidden shrink-0 items-center justify-end gap-1 md:flex">
         {LAYOUT_OPTIONS.map((opt) => (
           <button
             key={opt.value}
