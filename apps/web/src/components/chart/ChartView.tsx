@@ -9,20 +9,31 @@ import { TimeframeSelector } from './TimeframeSelector';
 interface ChartViewProps {
   symbol: TradingSymbol;
   initialTimeframe?: Timeframe;
+  compact?: boolean;
 }
 
-export function ChartView({ symbol, initialTimeframe = '1m' }: ChartViewProps) {
+export function ChartView({ symbol, initialTimeframe = '1m', compact = false }: ChartViewProps) {
   const [timeframe, setTimeframe] = useState<Timeframe>(initialTimeframe);
   const [latestBar, setLatestBar] = useState<Candle | null>(null);
   const [status, setStatus] = useState<ChartStatus>('loading');
 
   return (
     <div className="flex h-full flex-col gap-3">
-      {/* Top bar */}
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--color-border)] pb-3">
-        <PriceHeader symbol={symbol} bar={latestBar} isLoading={status === 'loading'} />
-        <TimeframeSelector value={timeframe} onChange={setTimeframe} />
-      </div>
+      {/* Top bar — hidden in compact mode */}
+      {!compact && (
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--color-border)] pb-3">
+          <PriceHeader symbol={symbol} bar={latestBar} isLoading={status === 'loading'} />
+          <TimeframeSelector value={timeframe} onChange={setTimeframe} />
+        </div>
+      )}
+      {compact && (
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-2 py-1">
+          <span className="font-mono text-xs font-medium text-[var(--color-text-secondary)]">
+            {symbol.base}/{symbol.quote}
+          </span>
+          <TimeframeSelector value={timeframe} onChange={setTimeframe} />
+        </div>
+      )}
 
       {/* Chart area */}
       <div className="relative flex-1 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)]">
@@ -62,7 +73,14 @@ function LoadingSpinner() {
         viewBox="0 0 24 24"
         aria-label="로딩 중"
       >
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
         <path
           className="opacity-75"
           fill="currentColor"

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    "paths": {
+      "@trading-app/core": ["./packages/core/src/index.ts"],
+      "@trading-app/datafeed": ["./packages/datafeed/src/index.ts"],
+      "@trading-app/ui": ["./packages/ui/src/index.ts"]
+    }
+  },
+  "include": ["packages/*/src/**/*.ts", "packages/*/src/**/*.tsx"],
+  "exclude": ["node_modules", "**/dist", "**/.next", "apps/**"]
+}
