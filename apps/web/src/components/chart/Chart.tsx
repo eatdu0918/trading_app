@@ -1,7 +1,7 @@
 'use client';
 
 import type { Candle, Timeframe, TradingSymbol } from '@trading-app/core';
-import { bollingerBands, ema, sma } from '@trading-app/core';
+import { bollingerBands, detectPatterns, ema, sma } from '@trading-app/core';
 import {
   BinanceDatafeed,
   toLightweightCandle,
@@ -15,6 +15,7 @@ import {
   createChart,
   type IChartApi,
   type ISeriesApi,
+  type SeriesMarker,
   type UTCTimestamp,
 } from 'lightweight-charts';
 import { useEffect, useRef } from 'react';
@@ -121,15 +122,21 @@ export function Chart({
   }, [onLatestBarChange, onStatusChange, onBarsLoad]);
 
   const barsRef = useRef<Candle[]>([]);
-  const { indicators, drawingMode, drawingsClearedAt } = useChartStore();
+  const { indicators, drawingMode, drawingsClearedAt, showPatterns } = useChartStore();
   const indicatorsRef = useRef(indicators);
   const drawingModeRef = useRef<DrawingMode>(drawingMode);
+  const showPatternsRef = useRef(showPatterns);
   useEffect(() => {
     indicatorsRef.current = indicators;
   }, [indicators]);
   useEffect(() => {
     drawingModeRef.current = drawingMode;
   }, [drawingMode]);
+  useEffect(() => {
+    showPatternsRef.current = showPatterns;
+    applyPatternMarkers(barsRef.current, showPatterns);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPatterns]);
 
   // Helper: get-or-create indicator series
   function getOrCreate(
@@ -155,6 +162,25 @@ export function Chart({
       chartRef.current?.removeSeries(ref.current);
       ref.current = null;
     }
+  }
+
+  function applyPatternMarkers(bars: Candle[], enabled: boolean) {
+    const candleSeries = candleSeriesRef.current;
+    if (!candleSeries) return;
+    if (!enabled || bars.length === 0) {
+      candleSeries.setMarkers([]);
+      return;
+    }
+    const patterns = detectPatterns(bars);
+    const markers: SeriesMarker<UTCTimestamp>[] = patterns.map((p) => ({
+      time: (p.time / 1000) as UTCTimestamp,
+      position: p.bullish ? 'belowBar' : 'aboveBar',
+      shape: p.bullish ? 'arrowUp' : 'arrowDown',
+      color: p.bullish ? THEME.bullish : THEME.bearish,
+      text: p.label,
+      size: 1,
+    }));
+    candleSeries.setMarkers(markers);
   }
 
   function applyIndicators(bars: Candle[]) {
@@ -374,6 +400,7 @@ export function Chart({
         );
 
         applyIndicators(bars);
+        applyPatternMarkers(bars, showPatternsRef.current);
 
         const last = bars.at(-1);
         if (last) callbacksRef.current.onLatestBarChange?.(last);

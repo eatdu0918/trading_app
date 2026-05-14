@@ -10,6 +10,8 @@ import { SubChart } from './SubChart';
 import { TimeframeSelector } from './TimeframeSelector';
 import { useChartStore } from '@/store/chart';
 import { useTicker24h } from '@/hooks/useTicker24h';
+import { usePriceAlerts } from '@/hooks/usePriceAlerts';
+import { AlertPanel } from '@/components/alerts/AlertPanel';
 
 interface ChartViewProps {
   symbol: TradingSymbol;
@@ -24,6 +26,8 @@ export function ChartView({ symbol, initialTimeframe = '1m', compact = false }: 
   const [status, setStatus] = useState<ChartStatus>('loading');
   const { indicators } = useChartStore();
   const ticker = useTicker24h(symbol);
+  const currentPrice = latestBar?.close ?? null;
+  usePriceAlerts(symbol.id, currentPrice);
 
   return (
     <div className="flex h-full flex-col">
@@ -42,6 +46,8 @@ export function ChartView({ symbol, initialTimeframe = '1m', compact = false }: 
             <IndicatorSelector />
             <div className="h-4 w-px bg-[var(--color-border)]" />
             <DrawingToolbar />
+            <div className="h-4 w-px bg-[var(--color-border)]" />
+            <AlertPanel symbol={symbol} currentPrice={currentPrice} />
           </div>
         </div>
       )}
