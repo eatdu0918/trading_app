@@ -8,15 +8,17 @@ import { RecentTrades } from './RecentTrades';
 
 interface TradingPanelProps {
   symbol: TradingSymbol;
+  /** Mobile mode: full-width, no collapse button */
+  mobile?: boolean;
 }
 
 type PanelTab = 'orderbook' | 'trades';
 
-export function TradingPanel({ symbol }: TradingPanelProps) {
+export function TradingPanel({ symbol, mobile = false }: TradingPanelProps) {
   const [open, setOpen] = useState(true);
   const [tab, setTab] = useState<PanelTab>('orderbook');
 
-  if (!open) {
+  if (!mobile && !open) {
     return (
       <div className="flex w-8 shrink-0 flex-col items-center border-l border-[var(--color-border)] bg-[var(--color-surface)]">
         <button
@@ -41,7 +43,12 @@ export function TradingPanel({ symbol }: TradingPanelProps) {
   }
 
   return (
-    <div className="flex w-[260px] shrink-0 flex-col border-l border-[var(--color-border)] bg-[var(--color-surface)]">
+    <div
+      className={cn(
+        'flex flex-col border-[var(--color-border)] bg-[var(--color-surface)]',
+        mobile ? 'h-full w-full' : 'w-[260px] shrink-0 border-l',
+      )}
+    >
       {/* Header: tabs + collapse */}
       <div className="flex shrink-0 items-center justify-between border-b border-[var(--color-border)] px-2 py-1">
         <div className="flex gap-1">
@@ -61,23 +68,25 @@ export function TradingPanel({ symbol }: TradingPanelProps) {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          title="패널 닫기"
-          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 14 14"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
+        {!mobile && (
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            title="패널 닫기"
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
           >
-            <polyline points="5,2 10,7 5,12" />
-          </svg>
-        </button>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <polyline points="5,2 10,7 5,12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Content */}

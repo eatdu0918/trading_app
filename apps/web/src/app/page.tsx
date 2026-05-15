@@ -1,8 +1,10 @@
 'use client';
 
 import type { TradingSymbol } from '@trading-app/core';
+import { cn } from '@trading-app/ui';
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
+import { MobileNav, type MobileTab } from '@/components/layout/MobileNav';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileBottomNav, type MobilePanel } from '@/components/layout/MobileBottomNav';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';

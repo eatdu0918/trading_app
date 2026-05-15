@@ -14,11 +14,14 @@ export function Header({ symbol, onSymbolChange }: HeaderProps) {
   const { isSignedIn } = useAuth();
 
   return (
-    <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2">
+    <header className="flex shrink-0 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 md:gap-3 md:px-4">
       {/* Brand */}
       <div className="flex shrink-0 items-baseline gap-3">
-        <span className="font-mono text-sm font-semibold tracking-widest text-[var(--color-text-primary)]">
+        <span className="hidden font-mono text-sm font-semibold tracking-widest text-[var(--color-text-primary)] sm:block">
           TRADING APP
+        </span>
+        <span className="font-mono text-sm font-semibold tracking-widest text-[var(--color-text-primary)] sm:hidden">
+          TA
         </span>
       </div>
 
