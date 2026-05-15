@@ -3,6 +3,7 @@
 import { SignInButton, UserButton, useAuth } from '@clerk/nextjs';
 import type { TradingSymbol } from '@trading-app/core';
 import { SymbolSelector } from '@/components/chart/SymbolSelector';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 
 interface HeaderProps {
   symbol: TradingSymbol;
@@ -27,10 +28,11 @@ export function Header({ symbol, onSymbolChange }: HeaderProps) {
       </div>
 
       {/* Auth */}
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2">
         <span className="hidden font-mono text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] sm:block">
           Live · Binance
         </span>
+        <ThemeToggle />
         {isSignedIn ? (
           <UserButton
             appearance={{

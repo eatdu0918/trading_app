@@ -19,7 +19,7 @@ const PANEL_ITEMS: { key: keyof IndicatorsConfig; label: string }[] = [
 export function IndicatorSelector() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { indicators, setIndicator } = useChartStore();
+  const { indicators, setIndicator, showPatterns, togglePatterns } = useChartStore();
 
   useEffect(() => {
     if (!open) return;
@@ -30,7 +30,7 @@ export function IndicatorSelector() {
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const activeCount = Object.values(indicators).filter(Boolean).length;
+  const activeCount = Object.values(indicators).filter(Boolean).length + (showPatterns ? 1 : 0);
 
   return (
     <div ref={ref} className="relative">
@@ -83,6 +83,11 @@ export function IndicatorSelector() {
               onChange={(v) => setIndicator(key, v)}
             />
           ))}
+          <div className="my-1.5 border-t border-[var(--color-border)]" />
+          <p className="mb-1 px-1 font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">
+            패턴
+          </p>
+          <CheckRow label="캔들 패턴" checked={showPatterns} onChange={() => togglePatterns()} />
         </div>
       )}
     </div>

@@ -15,9 +15,11 @@ interface ChartStore {
   indicators: IndicatorsConfig;
   drawingMode: DrawingMode;
   drawingsClearedAt: number;
+  showPatterns: boolean;
   setIndicator: (key: keyof IndicatorsConfig, value: boolean) => void;
   setDrawingMode: (mode: DrawingMode) => void;
   clearDrawings: () => void;
+  togglePatterns: () => void;
 }
 
 export const useChartStore = create<ChartStore>((set) => ({
@@ -31,7 +33,9 @@ export const useChartStore = create<ChartStore>((set) => ({
   },
   drawingMode: 'none',
   drawingsClearedAt: 0,
+  showPatterns: false,
   setIndicator: (key, value) => set((s) => ({ indicators: { ...s.indicators, [key]: value } })),
   setDrawingMode: (mode) => set({ drawingMode: mode }),
   clearDrawings: () => set({ drawingsClearedAt: Date.now(), drawingMode: 'none' }),
+  togglePatterns: () => set((s) => ({ showPatterns: !s.showPatterns })),
 }));

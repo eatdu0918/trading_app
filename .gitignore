@@ -54,3 +54,4 @@ coverage/
 # Playwright artifacts
 .playwright-mcp/
 *.png
+.claude/worktrees/

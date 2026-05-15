@@ -16,12 +16,29 @@
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', monospace;
 }
 
+/* Light theme overrides */
+[data-theme='light'] {
+  --color-background: #f0f2f5;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-accent: #2563eb;
+  --color-bullish: #16a34a;
+  --color-bearish: #dc2626;
+}
+
 @layer base {
   html,
   body {
     background: var(--color-background);
     color: var(--color-text-primary);
     font-family: var(--font-sans);
+    transition:
+      background-color 0.2s,
+      color 0.2s;
   }
 
   body {

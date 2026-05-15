@@ -5,13 +5,16 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 
 interface SidebarProps {
-  children: ReactNode;
+  watchlist: ReactNode;
+  portfolio: ReactNode;
 }
 
 const SIDEBAR_W = 220;
+type SidebarTab = 'watchlist' | 'portfolio';
 
-export function Sidebar({ children }: SidebarProps) {
+export function Sidebar({ watchlist, portfolio }: SidebarProps) {
   const [open, setOpen] = useState(true);
+  const [tab, setTab] = useState<SidebarTab>('watchlist');
 
   return (
     <aside
@@ -39,7 +42,42 @@ export function Sidebar({ children }: SidebarProps) {
         </svg>
       </button>
 
-      {open && <div className="min-h-0 flex-1 overflow-hidden">{children}</div>}
+      {open && (
+        <>
+          {/* Tab header */}
+          <div className="flex shrink-0 border-b border-[var(--color-border)]">
+            <button
+              type="button"
+              onClick={() => setTab('watchlist')}
+              className={cn(
+                'flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors',
+                tab === 'watchlist'
+                  ? 'border-b-2 border-[var(--color-accent)] text-[var(--color-text-primary)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]',
+              )}
+            >
+              관심
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('portfolio')}
+              className={cn(
+                'flex-1 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors',
+                tab === 'portfolio'
+                  ? 'border-b-2 border-[var(--color-accent)] text-[var(--color-text-primary)]'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]',
+              )}
+            >
+              포트폴리오
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="min-h-0 flex-1 overflow-hidden">
+            {tab === 'watchlist' ? watchlist : portfolio}
+          </div>
+        </>
+      )}
     </aside>
   );
 }
